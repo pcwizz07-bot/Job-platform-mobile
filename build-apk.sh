@@ -2,21 +2,42 @@
 set -e
 
 cd "$(dirname "$0")"
-echo "=== Building APK ==="
+echo "=== Building JobBoard APK (via EAS) ==="
 
-# Install dependencies
-npm install
+# Check if logged into Expo
+if ! npx eas whoami 2>/dev/null; then
+  echo ""
+  echo "============================================="
+  echo "You need to log into Expo to build the APK."
+  echo ""
+  echo "1. Create a free account at https://expo.dev"
+  echo "2. Run: npx eas login"
+  echo "============================================="
+  echo ""
+  echo "Alternatively, build locally with:"
+  echo "  cd /opt/job-platform-mobile"
+  echo "  npx expo run:android"
+  exit 1
+fi
 
-# Install EAS CLI
-npm install -g eas-cli 2>/dev/null || true
+echo "Triggering EAS build..."
+npx eas build -p android --profile preview --non-interactive --wait 2>&1 | tee /tmp/eas-build.log
 
-# Build APK
-echo "Building APK... (this takes a few minutes)"
-npx eas build -p android --profile preview --non-interactive 2>&1 | tail -5
+# Check for APK URL in output
+APK_URL=$(grep -oE 'https://[^ "]+\\.apk' /tmp/eas-build.log | head -1)
 
-echo ""
-echo "APK build submitted to Expo!"
-echo "Check build status: https://expo.dev/accounts/pcwizz07-bot/projects/jobboard-mobile/builds"
-echo ""
-echo "Once built, download URL will be available from Expo dashboard."
-echo "You can also set up auto-download in the build script."
+if [ -n "$APK_URL" ]; then
+  echo ""
+  echo "Downloading APK..."
+  mkdir -p /opt/job-platform/apk
+  curl -L "$APK_URL" -o "/opt/job-platform/apk/jobboard-$(date +%Y%m%d-%H%M).apk"
+  echo "✅ APK saved to /opt/job-platform/apk/"
+  ls -lh /opt/job-platform/apk/
+else
+  echo ""
+  echo "Build submitted. Check status at:"
+  echo "  https://expo.dev/accounts/$(npx eas whoami 2>/dev/null || echo 'your-account')/projects/jobboard-mobile/builds"
+  echo ""
+  echo "Once complete, download the APK and place it in:"
+  echo "  /opt/job-platform/apk/"
+fi
