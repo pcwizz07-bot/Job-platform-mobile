@@ -9,16 +9,11 @@
     "splash": {
       "backgroundColor": "#0f1117"
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.jobboard.mobile"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0f1117"
       },
       "package": "com.jobboard.mobile",
-      "googleServicesFile": "./google-services.json",
       "permissions": [
         "INTERNET",
         "RECEIVE_BOOT_COMPLETED",
@@ -28,8 +23,7 @@
       ]
     },
     "plugins": [
-      "expo-notifications",
-      "expo-background-fetch"
+      "expo-notifications"
     ],
     "extra": {
       "apiUrl": "http://bespokeuisp.dedicated.co.za"
